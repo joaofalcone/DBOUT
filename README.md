@@ -9,7 +9,7 @@ Automação para atualizar somente a tabela `configuracao_pdv` do banco do check
 - Substitui somente a tabela `configuracao_pdv` do destino pela tabela existente na origem.
 - Mantém todas as demais tabelas e dados do banco de `/opt/checkout/pdv_out.db`.
 - Mantém o banco de origem intacto.
-- Define como `NULL`:
+- Define como `0`:
   - `numero_caixa`
   - `serie_nota_fiscal`
   - `serie_nfe`
@@ -19,7 +19,7 @@ O script trabalha primeiro em uma cópia temporária, valida o resultado e somen
 ## Executar
 
 ```bash
-sudo bash -c 'cd /tmp && (curl -fsSLo DBOUT.sh https://raw.githubusercontent.com/joaofalcone/DBOUT/main/DBOUT.sh || wget -qO DBOUT.sh https://raw.githubusercontent.com/joaofalcone/DBOUT/main/DBOUT.sh) && chmod +x DBOUT.sh && ./DBOUT.sh'
+sudo bash -c 'cd /tmp && (curl -fsSLo DBOUT_v2.sh https://raw.githubusercontent.com/joaofalcone/DBOUT/main/DBOUT_v2.sh || wget -qO DBOUT_v2.sh https://raw.githubusercontent.com/joaofalcone/DBOUT/main/DBOUT_v2.sh) && chmod +x DBOUT_v2.sh && ./DBOUT_v2.sh'
 ```
 
 > Execute com o PDV/Checkout fechado.
