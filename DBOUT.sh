@@ -84,17 +84,9 @@ fi
 
 echo "[3/6] Copiando somente a tabela configuracao_pdv..."
 
-# Cria uma cópia consistente do banco do checkout.
 sqlite3 "$DESTINO" ".backup '$TEMP_DB'"
-
-# Exporta somente a tabela configuracao_pdv da origem,
-# incluindo a estrutura e os registros dela.
 sqlite3 "$ORIGEM" ".dump configuracao_pdv" > "$DUMP_SQL"
-
-# Remove somente a tabela configuracao_pdv da cópia do checkout.
 sqlite3 "$TEMP_DB" "DROP TABLE IF EXISTS configuracao_pdv;"
-
-# Recria configuracao_pdv exatamente como ela existe no banco da /home/pdv.
 sqlite3 "$TEMP_DB" < "$DUMP_SQL"
 
 echo "[4/6] Zerando identificação do caixa..."
@@ -102,9 +94,9 @@ echo "[4/6] Zerando identificação do caixa..."
 sqlite3 "$TEMP_DB" "
 UPDATE configuracao_pdv
 SET
-    numero_caixa = NULL,
-    serie_nota_fiscal = NULL,
-    serie_nfe = NULL;
+    numero_caixa = 0,
+    serie_nota_fiscal = 0,
+    serie_nfe = 0;
 "
 
 echo "[5/6] Validando resultado..."
@@ -123,30 +115,25 @@ if [ "$REGISTROS_DESTINO" -ne "$REGISTROS_ORIGEM" ]; then
     exit 1
 fi
 
-NAO_NULOS=$(sqlite3 "$TEMP_DB" "
+INVALIDOS=$(sqlite3 "$TEMP_DB" "
 SELECT COUNT(*)
 FROM configuracao_pdv
-WHERE numero_caixa IS NOT NULL
-   OR serie_nota_fiscal IS NOT NULL
-   OR serie_nfe IS NOT NULL;
+WHERE COALESCE(CAST(numero_caixa AS TEXT),'') <> '0'
+   OR COALESCE(CAST(serie_nota_fiscal AS TEXT),'') <> '0'
+   OR COALESCE(CAST(serie_nfe AS TEXT),'') <> '0';
 ")
 
-if [ "$NAO_NULOS" -ne 0 ]; then
-    echo "ERRO: uma ou mais colunas que deveriam estar NULL não foram zeradas."
+if [ "$INVALIDOS" -ne 0 ]; then
+    echo "ERRO: uma ou mais colunas que deveriam estar 0 não foram zeradas."
     exit 1
 fi
 
 echo "[6/6] Aplicando alteração..."
 
-# Mantém dono e permissões do banco atual do checkout.
 chown --reference="$DESTINO" "$TEMP_DB"
 chmod --reference="$DESTINO" "$TEMP_DB"
 
-# Substitui o banco somente após todas as validações.
-# Todas as outras tabelas continuam vindas do banco original da /opt/checkout.
 mv -f "$TEMP_DB" "$DESTINO"
-
-# O arquivo já foi movido; evita tentativa de removê-lo no trap.
 TEMP_DB=""
 
 echo
@@ -171,4 +158,4 @@ echo "Origem preservada: $ORIGEM"
 echo "Banco atualizado:  $DESTINO"
 echo
 echo "Somente a tabela configuracao_pdv foi substituída."
-echo "numero_caixa, serie_nota_fiscal e serie_nfe ficaram NULL."
+echo "numero_caixa, serie_nota_fiscal e serie_nfe ficaram com valor 0."
