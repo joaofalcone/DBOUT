@@ -1,21 +1,20 @@
 # DBOUT
 
-Automação para preparar o banco `pdv_out.db` de um novo caixa Linux.
+Automação para atualizar somente a tabela `configuracao_pdv` do banco do checkout.
 
 ## Fluxo
 
-- Usa `/home/pdv/pdv_out.db` como banco configurado.
-- Usa `/opt/checkout/pdv_out.db` como banco padrão/vazio.
-- Copia somente o registro da tabela `configuracao_pdv`.
-- Zera:
+- Origem: `/home/pdv/pdv_out.db`
+- Destino: `/opt/checkout/pdv_out.db`
+- Substitui somente a tabela `configuracao_pdv` do destino pela tabela existente na origem.
+- Mantém todas as demais tabelas e dados do banco de `/opt/checkout/pdv_out.db`.
+- Mantém o banco de origem intacto.
+- Define como `NULL`:
   - `numero_caixa`
   - `serie_nota_fiscal`
   - `serie_nfe`
-- Mantém os originais como:
-  - `/home/pdv/pdv_out_old.db`
-  - `/opt/checkout/pdv_out_old.db`
-- Deixa o banco reformulado ativo em:
-  - `/opt/checkout/pdv_out.db`
+
+O script trabalha primeiro em uma cópia temporária, valida o resultado e somente depois substitui o banco ativo do checkout.
 
 ## Executar
 
